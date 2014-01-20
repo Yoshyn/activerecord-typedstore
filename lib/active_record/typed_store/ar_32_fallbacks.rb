@@ -32,7 +32,7 @@ module ActiveRecord::TypedStore
     module ClassMethods
 
       def typed_store(store_attribute, dsl)
-        _ar_32_fallback_accessors(store_attribute, dsl.accessors)
+        _ar_32_fallback_accessors(store_attribute, dsl.accessors, dsl.prefix)
       end
 
       protected
@@ -55,17 +55,18 @@ module ActiveRecord::TypedStore
         attribute_method_matchers_cache.clear
       end
 
-      def _ar_32_fallback_accessors(store_attribute, accessors)
+      def _ar_32_fallback_accessors(store_attribute, accessors, prefix=false)
         accessors.each do |accessor|
-          _ar_32_fallback_accessor(store_attribute, accessor)
+          _ar_32_fallback_accessor(store_attribute, accessor, prefix)
         end
       end
 
-      def _ar_32_fallback_accessor(store_attribute, key)
-        define_method("#{key}=") do |value|
+      def _ar_32_fallback_accessor(store_attribute, key, prefix=false)
+        accessor_method = prefix ? "#{store_attribute}_#{key}" : "#{key}"
+        define_method("#{accessor_method}=") do |value|
           write_store_attribute(store_attribute, key, value)
         end
-        define_method(key) do
+        define_method(accessor_method) do
           read_store_attribute(store_attribute, key)
         end
       end
